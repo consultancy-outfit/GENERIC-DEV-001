@@ -1,0 +1,14 @@
+<%- include('partials/header.partial.ejs') -%>
+    <p>Hi <%= data.firstName %> <%=data.lastName%>,</p>
+    <br/>
+    <p>Congratulations!</p>
+    <p>We are glad to inform you that you are onboard!</p>
+    <br/>
+    <p>Following are your credentials:</p>
+    <p>Email: <strong><%= data.email %></strong></p>
+    <p>Temporary Password: <strong><%= data.password %></strong></p>
+    <br/>
+    <p>Use the link below to set your new password:</p>
+    <a href="<%= data.link %>" target="_blank">Set new password</a>
+    <br/>
+<%- include('partials/footer.partial.ejs') -%>

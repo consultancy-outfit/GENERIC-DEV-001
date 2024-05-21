@@ -1,0 +1,9 @@
+FROM node:20-alpine
+
+RUN mkdir -p /var/www/notification
+WORKDIR /var/www/notification
+ADD . /var/www/notification
+
+RUN npx nx build notification
+
+CMD ["node", "./dist/apps/notification/main.js"]

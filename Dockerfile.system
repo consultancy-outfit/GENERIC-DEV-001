@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+RUN mkdir -p /var/www/system
+WORKDIR /var/www/system
+ADD . /var/www/system
+
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories
+RUN apk update
+RUN apk add mongodb-tools
+
+RUN npx nx build system
+
+CMD ["node", "./dist/apps/system/main.js"]

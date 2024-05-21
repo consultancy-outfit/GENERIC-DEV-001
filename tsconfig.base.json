@@ -1,0 +1,38 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@gateway/decorators": ["apps/gateway/src/app/decorators/index.ts"],
+      "@gateway/interfaces": ["apps/gateway/src/app/interfaces/index.ts"],
+      "@gateway/mocks": ["apps/gateway/src/app/mocks/index.ts"],
+      "@gateway/validators": ["apps/gateway/src/app/validators/index.ts"],
+      "@shared": ["libs/shared/src/index.ts"],
+      "@shared/classes": ["libs/shared/src/classes/index.ts"],
+      "@shared/config": ["libs/shared/src/config/index.ts"],
+      "@shared/constants": ["libs/shared/src/constants/index.ts"],
+      "@shared/dto": ["libs/shared/src/common/dto/index.ts"],
+      "@shared/filters": ["libs/shared/src/common/filters/index.ts"],
+      "@shared/middleware": ["libs/shared/src/middleware/index.ts"],
+      "@shared/models": ["libs/shared/src/models/index.ts"],
+      "@shared/pipes": ["libs/shared/src/pipes/index.ts"],
+      "@shared/repository": ["libs/shared/src/repository/index.ts"],
+      "@shared/schemas": ["libs/shared/src/schemas/index.ts"],
+      "@shared/services": ["libs/shared/src/services/index.ts"],
+      "@shared/utils": ["libs/shared/src/utils/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

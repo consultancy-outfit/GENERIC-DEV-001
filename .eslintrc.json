@@ -1,0 +1,68 @@
+{
+  "root": true,
+  "ignorePatterns": ["**/*"],
+  "plugins": ["@nx", "@cspell"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "rules": {
+        "@nx/enforce-module-boundaries": [
+          "error",
+          {
+            "enforceBuildableLibDependency": true,
+            "allow": [
+              "@gateway/decorators",
+              "@gateway/interfaces",
+              "@gateway/mocks",
+              "@gateway/validators"
+            ],
+            "depConstraints": [
+              {
+                "sourceTag": "*",
+                "onlyDependOnLibsWithTags": ["*"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["plugin:@nx/typescript", "plugin:@cspell/recommended"],
+      "rules": {
+        "@cspell/spellchecker": [
+          "warn",
+          {
+            "checkComments": false,
+            "autoFix": true,
+            "cspell": { "import": ["cspell.son"] }
+          }
+        ],
+        "@typescript-eslint/no-explicit-any": "off", // Disable @typescript-eslint/no-explicit-any
+        "@typescript-eslint/no-var-requires": "off", // Disable @typescript-eslint/no-var-requires
+        "no-useless-escape": "off", // Disable no-useless-escape
+        "no-prototype-builtins": "off",
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+        ],
+        "no-console": "error",
+        "prefer-const": "warn"
+      }
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "extends": ["plugin:@nx/javascript"],
+      "rules": {}
+    },
+    {
+      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
+}

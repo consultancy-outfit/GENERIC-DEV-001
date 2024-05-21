@@ -1,0 +1,11 @@
+FROM node:20-alpine
+
+RUN mkdir -p /var/www/gateway
+WORKDIR /var/www/gateway
+ADD . /var/www/gateway
+
+RUN npx nx build gateway
+
+EXPOSE 8000
+
+CMD ["node", "./dist/apps/gateway/main.js"]

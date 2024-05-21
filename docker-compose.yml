@@ -1,0 +1,57 @@
+version: '3.0'
+services:
+  gateway:
+    container_name: gateway
+    build:
+      context: ./
+      dockerfile: Dockerfile.gateway
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '8000:8000'
+    networks:
+      - pl-be
+  notification:
+    container_name: notification
+    build:
+      context: ./
+      dockerfile: Dockerfile.notification
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - pl-be
+  system:
+    container_name: system
+    build:
+      context: ./
+      dockerfile: Dockerfile.system
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - pl-be
+  useraccount:
+    container_name: useraccount
+    build:
+      context: ./
+      dockerfile: Dockerfile.useraccount
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - pl-be
+  userprofile:
+    container_name: userprofile
+    build:
+      context: ./
+      dockerfile: Dockerfile.userprofile
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - pl-be
+networks:
+  pl-be:
+    external: true

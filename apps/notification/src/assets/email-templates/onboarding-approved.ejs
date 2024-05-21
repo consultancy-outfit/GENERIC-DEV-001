@@ -1,0 +1,11 @@
+<%- include('partials/header.partial.ejs') -%>
+    <p>Hi <%= data.firstName %> <%=data.lastName%>,</p>
+    <br/>
+    <p>Congratulations!</p>
+    <p>We are glad to inform you that your registration has been approved</p>
+    <br/>
+    <p>Following are your credentials</p>
+    <p>Email: <strong><%= data.email %></strong></p>
+    <p>password: <strong><%= data.password %></strong></p>
+    <br/>
+<%- include('partials/footer.partial.ejs') -%>

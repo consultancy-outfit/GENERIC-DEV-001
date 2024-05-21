@@ -1,0 +1,408 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script src="https://gateway-dev.fosterapp.co.uk/socket.io/socket.io.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins&family=Work+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism-okaidia.min.css"
+      integrity="sha512-5HvW0a7ihK3ro2KhwEksDHXgIezsTeZybZDIn8d8Y015Ny+t7QWSIjnlCTjFzlK7Klb604HLGjsNqU/i5mJLjQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      body {
+        font-family: 'Work Sans', sans-serif;
+      }
+
+      /* ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      } */
+
+      ::-webkit-scrollbar {
+        background-color: #2b2b2b;
+      }
+
+      ::-webkit-scrollbar-track {
+        border-radius: 2px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        border-radius: 8px;
+        background-color: #6b6b6b;
+        min-height: 24px;
+        border: 3px solid #2b2b2b;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #908f8f;
+      }
+
+      pre[class*='language-'] {
+        overflow: auto;
+        position: relative;
+        margin: 0.5em 0;
+        max-height: 400px;
+        white-space: nowrap;
+      }
+
+      .bodyContainer > div:nth-child(odd) {
+        padding-right: 1.5rem;
+      }
+
+      .bodyContainer.last-child-full-width > div:last-child {
+        width: 100% !important;
+        padding-right: 0 !important;
+      }
+
+      .cursor-pointer {
+        cursor: pointer;
+      }
+    </style>
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+    ></script>
+  </head>
+
+  <body class="my-5" style="background-color: #201f24">
+    <div class="container w-full h-full">
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="logModal"
+        tabindex="-1"
+        aria-labelledby="logModalLabel"
+        aria-hidden="true"
+      >
+        <div
+          class="modal-dialog modal-xl modal-dialog-centered"
+          style="color: #b5b4b9"
+        >
+          <div class="modal-content" style="background-color: #343338">
+            <div class="modal-body" style="overflow: auto">
+              <div
+                class="d-flex align-items-center justify-content-between p-2"
+              >
+                <div id="reqMethodDiv">
+                  <span><b>Request Method: </b></span
+                  ><span><b id="method">{method}</b></span>
+                </div>
+                <div id="statusCodeDiv">
+                  <span><b>Status Code: </b></span
+                  ><span><b id="statusCode">{statusCode}</b></span>
+                </div>
+              </div>
+
+              <div id="reqUrlDiv" class="d-flex align-items-center p-2">
+                <b class="me-3">URL: </b>
+                <pre class="language-markup flex-grow-1">
+                <code id="url">
+                  {url}
+                </code>
+              </pre>
+              </div>
+
+              <div
+                class="d-flex flex-wrap align-items-start p-2 bodyContainer"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between flex-wrap">
+        <div>
+          <h1 class="fw-bold text-white">Log Viewer - FosterApp</h1>
+        </div>
+        <div class="d-flex gap-5 mt-3 flex-end justify-content-end">
+          <select
+            id="levelFilter"
+            style="background-color: #343338; width: 200px"
+            class="text-white form-select border-0"
+            onchange="filterTable()"
+          >
+            <option value="all">Show All</option>
+            <option value="INFO">INFO</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+
+          <div>
+            <input
+              type="search"
+              class="form-control border-0 text-white"
+              style="background-color: #343338"
+              id="search"
+              placeholder="Search..."
+              oninput="filterTable()"
+            />
+          </div>
+        </div>
+      </div>
+      <!-- body -->
+      <div
+        class="mt-5 rounded-2"
+        id="wrapper"
+        style="height: 70vh; overflow: auto; border: 0.3px solid #434247"
+      >
+        <table class="rounded table">
+          <thead>
+            <tr
+              class="sticky-top"
+              style="
+                color: #b5b4b9;
+                background-color: #201f24;
+                border-bottom: #434247;
+              "
+            >
+              <th>Method</th>
+              <th>Level</th>
+              <th>URL</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+            <tr
+              id="loadingRow"
+              class="cursor-pointer"
+              style="border-bottom: 0px"
+            >
+              <td colspan="4" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </td>
+            </tr>
+          </thead>
+          <tbody id="logTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script
+      type="text/javascript"
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+    ></script>
+
+    <script>
+      let logData;
+      function filterTable() {
+        const input = document.getElementById('search');
+        const levelFilter = document.getElementById('levelFilter').value;
+        const rows = document.querySelectorAll('#logTable tr');
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          let levelColumn =
+            levelFilter === 'INFO'
+              ? row.cells[1].innerText === 'INFO'
+              : levelFilter === 'ERROR'
+              ? row.cells[1].innerText === 'ERROR'
+              : row.cells[1].innerText === 'ERROR' ||
+                row.cells[1].innerText === 'INFO';
+          const urlColumn = row.cells[3].innerText;
+          if (levelColumn == true && input.value != '') {
+            let rowValues = [...row.cells].map((r) => r.innerText);
+            for (let j = 0; j < rowValues.length; j++) {
+              if (rowValues[j]?.includes(input.value)) {
+                levelColumn = true;
+                break;
+              } else {
+                levelColumn = false;
+              }
+            }
+          }
+
+          if (levelColumn) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        }
+      }
+      let modalBodyContainer =
+        document.getElementsByClassName('bodyContainer')[0];
+
+      function handleRowClick(reqId) {
+        window.location.href.replace(window.location.href.split('?')[0] + "?reqId=" + reqId); 
+        const logObject = logData.find((data) => data.reqId === reqId);
+
+        let modal = document.getElementById('modal');
+        if (logObject.reqHeaders && logObject.reqHeaders != '{}') {
+          modalBodyContainer.innerHTML += `
+            <div class="w-50">
+              <b>Request Headers: </b>
+              <pre class="language-javascript flex-grow-1">
+                <code>${logObject.reqHeaders}</code>
+              </pre>
+            </div>
+          `;
+        }
+        if (logObject.pathParams && logObject.pathParams != '{}') {
+          modalBodyContainer.innerHTML += `
+            <div class="w-50">
+              <b>Path Params: </b>
+              <pre class="language-javascript flex-grow-1">
+                <code>${logObject.pathParams}</code>
+              </pre>
+            </div>
+          `;
+        }
+        if (logObject.queryParams && logObject.queryParams != '{}') {
+          modalBodyContainer.innerHTML += `
+            <div class="w-50">
+              <b>Query Params: </b>
+              <pre class="language-javascript flex-grow-1">
+                <code>${logObject.queryParams}</code>
+              </pre>
+            </div>
+          `;
+        }
+        if (logObject.reqBody && logObject.reqBody != '{}') {
+          modalBodyContainer.innerHTML += `
+            <div class="w-50">
+              <b>Request Body: </b>
+              <pre class="language-javascript flex-grow-1">
+                <code>${logObject.reqBody}</code>
+              </pre>
+            </div>
+          `;
+        }
+        if (logObject.resBody && logObject.resBody != '{}') {
+          modalBodyContainer.innerHTML += `
+            <div class="w-50">
+              <b>Response Body: </b>
+              <pre class="language-javascript flex-grow-1">
+                <code>${logObject.resBody}</code>
+              </pre>
+            </div>
+          `;
+        }
+        document.getElementById('method').innerHTML =
+          logObject.method == '{}' ? 'N/A' : logObject.method;
+        document.getElementById('statusCode').innerHTML = logObject.statusCode;
+        if (logObject.statusCode >= 200 && logObject.statusCode < 300) {
+          document.getElementById('reqMethodDiv').style.color =
+            'rgb(181, 180, 185)';
+          document.getElementById('statusCodeDiv').style.color =
+            'rgb(181, 180, 185)';
+          document.getElementById('reqUrlDiv').style.color =
+            'rgb(181, 180, 185)';
+          document.getElementById('url').style.color = 'rgb(181, 180, 185)';
+          document.getElementById('url').style.fontWeight = '900';
+        } else {
+          document.getElementById('reqMethodDiv').style.color = '#EE414B';
+          document.getElementById('statusCodeDiv').style.color = '#EE414B';
+          document.getElementById('reqUrlDiv').style.color = '#EE414B';
+          document.getElementById('url').style.color = '#EE414B';
+          document.getElementById('url').style.fontWeight = '900';
+        }
+        document.getElementById('url').innerHTML =
+          logObject.url == '{}' ? 'N/A' : logObject.url;
+
+        modalBodyContainer =
+          document.getElementsByClassName('bodyContainer')[0];
+
+        if (modalBodyContainer.childElementCount % 2 != 0) {
+          modalBodyContainer.classList.add('last-child-full-width');
+        } else {
+          if (modalBodyContainer.classList.contains('last-child-full-width')) {
+            modalBodyContainer.classList.remove('last-child-full-width');
+          }
+        }
+
+        Prism.highlightAll(modal);
+      }
+
+      $(document).ready(function () {
+        window.Prism = window.Prism || {};
+        Prism.manual = true;
+        let logModal = document.getElementById('logModal');
+        logModal.addEventListener('hidden.bs.modal', function (event) {
+          modalBodyContainer.innerHTML = '';
+        });
+        const socket = io('https://gateway-dev.fosterapp.co.uk');
+        socket.emit('fetch', {});
+        socket.on('fetch', (data) => {
+          logData ??= data;
+
+          var table = document.getElementById('logTable');
+          const loadingRow = document.getElementById('loadingRow');
+          if (!data) {
+            loadingRow.style.display = '';
+          } else if (data.length === 0) {
+            loadingRow.innerHTML = `
+              <td colspan="4" class="text-center">
+                <div class="d-flex align-items-center justify-content-center" style="color: #b5b4b9;">No requests yet.</div>
+              </td>
+            `;
+          } else {
+            loadingRow.style.display = 'none';
+          }
+          for (var i = 0; i < data.length; i++) {
+            var row = `<tr  class="cursor-pointer" style="color:#B5B4B9;background-color:#343338;border-bottom:#434247" onclick="handleRowClick('${
+              data[i].reqId
+            }')" data-bs-toggle="modal" data-bs-target="#logModal">
+                <td>${data[i].method}</td>
+                <td class="${data[i].level === 'INFO' && 'text-info'} ${
+                  data[i].level === 'ERROR' && 'text-danger'
+                }">${data[i].level}</td>
+                <td>${
+                  data[i].url.length > 60
+                    ? data[i].url.slice(0, 60) + '...'
+                    : data[i].url
+                }</td>
+                <td>${data[i].statusCode}</td>
+                <td>${data[i].timestamp}</td>
+                </tr>`;
+            table.innerHTML = row + table.innerHTML;
+          }
+          let preReqId = new URLSearchParams(location.search).get('reqId');
+          if (preReqId) {
+            new bootstrap.Modal(document.getElementById('logModal'), {}).show();
+            window.handleRowClick(preReqId);
+          }
+        });
+        socket.on('request', (data) => {
+          document.getElementById('loadingRow').style.display = 'none';
+          logData?.push(data);
+          var table = document.getElementById('logTable');
+          var row = `<tr class="cursor-pointer" style="color:#B5B4B9;background-color:#343338;border-bottom:#434247" onclick="handleRowClick('${
+            data.reqId
+          }')" data-bs-toggle="modal" data-bs-target="#logModal">
+                <td>${data.method}</td>
+                <td class="${data.level === 'INFO' && 'text-info'} ${
+                  data.level === 'ERROR' && 'text-danger'
+                }">${data.level}</td>
+                <td>${
+                  data.url.length > 60
+                    ? data.url.slice(0, 60) + '...'
+                    : data.url
+                }</td>
+                <td>${data.statusCode}</td>
+                <td>${data.timestamp}</td>
+              </tr>`;
+          table.innerHTML = row + table.innerHTML;
+        });
+      });
+    </script>
+  </body>
+</html>

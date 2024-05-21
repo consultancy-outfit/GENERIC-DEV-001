@@ -1,0 +1,9 @@
+FROM node:20-alpine
+
+RUN mkdir -p /var/www/user-profile
+WORKDIR /var/www/user-profile
+ADD . /var/www/user-profile
+
+RUN npx nx build user-profile
+
+CMD ["node", "./dist/apps/user-profile/main.js"]

@@ -1,0 +1,9 @@
+FROM node:20-bookworm
+
+RUN mkdir -p /var/www/user-account
+WORKDIR /var/www/user-account
+ADD . /var/www/user-account
+
+RUN npx nx build user-account
+
+CMD ["node", "./dist/apps/user-account/main.js"]

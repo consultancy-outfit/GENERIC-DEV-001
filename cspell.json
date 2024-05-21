@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "dictionaryDefinitions": [
+    {
+      "name": "allowed-list",
+      "path": "./allowed-list.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["allowed-list"],
+  "ignorePaths": ["node_modules", "dist", "**/*.mock.ts", "/allowed-list.txt"]
+}

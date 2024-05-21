@@ -1,0 +1,49 @@
+export enum SERVICES {
+  USER_ACCOUNT_PROFILE = 'USER_ACCOUNT_PROFILE',
+  NOTIFICATION = 'NOTIFICATION',
+  SYSTEM = 'SYSTEM',
+}
+
+export enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
+}
+
+export enum WebhooksTypeEnum {
+  EVENT = 'Event',
+  DECISION = 'Decision',
+  PROOF_ADDRESS = 'Proof Address',
+}
+
+export enum VerificationLinkTypeEnum {
+  EMAIL = 'EMAIL',
+  SMS = 'SMS',
+  QRCODE = 'QRCODE',
+}
+
+export enum VerificationStatusEnum {
+  NOT_STARTED = 'Not Started',
+  STARTED = 'Started',
+  SUBMITTED = 'Submitted',
+  EXPIRED = 'Expired',
+  ABANDONED = 'Abandoned',
+  DECLINED = 'Declined',
+  APPROVED = 'Approved',
+  UNDER_REVIEW = 'Under Review',
+}
+
+export enum VerificationDocumentEnum {
+  PASSPORT = 'Passport',
+  LICENSE = 'License',
+  ADDRESS_PERMIT = 'Address Permit',
+  PROOF_ADDRESS = 'Proof Address',
+}
+
+export enum VerificationPlatformEnum {
+  WEB_REACT_JS = 'Web-React-JS',
+  IOS = 'IOS',
+  ANDROID = 'Android',
+}
+
+export const SOCKET_ROOM = 'Logger';
