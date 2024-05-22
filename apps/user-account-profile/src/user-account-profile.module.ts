@@ -5,10 +5,7 @@ import { AuthService } from './app/services/auth.service';
 import { SERVICE } from './app/constants';
 import { AuthController } from './app/controllers/auth.controller';
 import { TokenService } from './app/services/token.service';
-import {
-  AuditLogRepository,
-  UserRepository,
-} from '@shared/repository';
+import { AuditLogRepository, UserRepository } from '@shared/repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SharedModule } from '@shared';
 import { TokenController } from './app/controllers/token.controller';
@@ -16,13 +13,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from '@shared/filters';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import {
-  AuditLog,
-  AuditLogSchema,
-  NotificationSchema,
-  User,
-  UserSchema,
-} from '@shared/schemas';
+import { AuditLog, AuditLogSchema, User, UserSchema } from '@shared/schemas';
 import { UserService } from './app/services/user.service';
 import { UserController } from './app/controllers/user.controller';
 
@@ -63,10 +54,6 @@ const schemaObject = {
         name: AuditLog.name,
         schema: AuditLogSchema,
       },
-      {
-        name: Notification.name,
-        schema: NotificationSchema,
-      }
     ]),
     PassportModule,
     JwtModule.registerAsync({
@@ -78,18 +65,14 @@ const schemaObject = {
     }),
     SharedModule,
   ],
-  controllers: [
-    AuthController,
-    TokenController,
-    UserController
-  ],
+  controllers: [AuthController, TokenController, UserController],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     UserService,
     AuthService,
     TokenService,
     AuditLogRepository,
-    UserRepository
+    UserRepository,
   ],
 })
 export class UserAccountProfileModule {}

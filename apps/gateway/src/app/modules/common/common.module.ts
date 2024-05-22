@@ -9,17 +9,9 @@ import { UserProfileController } from './controllers/user-profile.controller';
 import { WinstonService } from '@shared/config';
 import { UtilsController, EventsGateway } from './controllers/utils.controller';
 
-import {
-  ALL_SERVICE_PROVIDERS,
-  ReferenceDataService,
-  SERVICE_PROVIDERS,
-} from './services';
+import { ALL_SERVICE_PROVIDERS, SERVICE_PROVIDERS } from './services';
 import { SuperAdminController } from './controllers/super-admin.controller';
-import { CompanyController } from './controllers/company.controller';
-import { BackupController } from './controllers/backup.controller';
-import { RoleController } from './controllers/role.controller';
 import { SharedModule } from '@shared';
-import { ReferenceDataController } from './controllers/reference-data.controller';
 import { NotificationController } from './controllers/notification.controller';
 
 const schemaObject = {
@@ -62,18 +54,9 @@ const schemaObject = {
     UtilsController,
     UserProfileController,
     SuperAdminController,
-    CompanyController,
-    BackupController,
-    RoleController,
-    ReferenceDataController,
     NotificationController,
   ],
-  providers: [
-    ...SERVICE_PROVIDERS,
-    ALL_SERVICE_PROVIDERS,
-    EventsGateway,
-    ReferenceDataService,
-  ],
+  providers: [...SERVICE_PROVIDERS, ALL_SERVICE_PROVIDERS, EventsGateway],
   exports: [...SERVICE_PROVIDERS, EventsGateway],
 })
 export class CommonModule {}

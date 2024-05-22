@@ -1,15 +1,8 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { createHmac } from 'crypto';
-import {
-  ChangePasswordDto,
-  SigninDto,
-} from '../dto/auth';
+import { ChangePasswordDto, SigninDto } from '../dto/auth';
 import { TokenService } from './token.service';
 import { SetNewPassword, SetPassword } from '../dto/auth/set-new-password.dto';
 import { UserRepository } from '@shared/repository';

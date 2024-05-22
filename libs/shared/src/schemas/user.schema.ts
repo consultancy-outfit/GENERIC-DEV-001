@@ -1,9 +1,7 @@
 import { SchemaFactory, Prop, Schema } from '@nestjs/mongoose';
 import mongoose, { SchemaTypes, Types } from 'mongoose';
 import { AbstractSchema } from '../common/abstracts/schema/abstract.schema';
-import {
-  VerificationStatusEnum,
-} from '../constants/enums';
+import { Role, VerificationStatusEnum } from '../constants/enums';
 
 @Schema({
   collection: 'users',
@@ -38,10 +36,10 @@ export class User extends AbstractSchema<string> {
   @Prop({ type: String, required: false })
   gender: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, default: Role.USER })
   defaultRole: string;
 
-  @Prop({ type: Boolean, default: true })
+  @Prop({ type: Boolean, default: false, required: true })
   isActive?: boolean;
 
   @Prop({ type: String, required: false })

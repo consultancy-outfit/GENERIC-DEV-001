@@ -1,19 +1,12 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MESSAGE_PATTERNS } from '@shared/constants';
-import {
-  SigninDto,
-  ChangePasswordDto,
-} from '../dto/auth';
+import { SigninDto, ChangePasswordDto } from '../dto/auth';
 import { AuthService } from '../services/auth.service';
 import { SetNewPassword } from '../dto/auth/set-new-password.dto';
 
-const {
-  SIGNUP,
-  SIGNIN,
-  CHANGE_PASSWORD,
-  SET_NEW_PASSWORD,
-} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.AUTH;
+const { SIGNUP, SIGNIN, CHANGE_PASSWORD, SET_NEW_PASSWORD } =
+  MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.AUTH;
 
 @Controller()
 export class AuthController {

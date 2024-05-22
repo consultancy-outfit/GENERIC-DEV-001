@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PERMISSIONS } from '@shared/constants';
 import { ApiResponseDto } from '@shared/dto';
 import {
   IsArray,
@@ -8,12 +7,6 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-
-const {
-  _1_ON_1S: {
-    _1_ON_1S: { PERMISSION: _1_On_1sPermission },
-  },
-} = PERMISSIONS.PERFORMANCE.MODULE;
 
 export class RoleRequestDto {
   @ApiProperty({ example: 'Manager' })
@@ -30,11 +23,7 @@ export class RoleRequestDto {
   description: string;
 
   @ApiProperty({
-    example: [
-      _1_On_1sPermission.CREATE,
-      _1_On_1sPermission.UPDATE,
-      _1_On_1sPermission.VIEW,
-    ],
+    example: [],
   })
   @IsOptional()
   @IsArray()
@@ -114,11 +103,7 @@ export class UpdateRoleRequestDto {
   description: string;
 
   @ApiProperty({
-    example: [
-      _1_On_1sPermission.CREATE,
-      _1_On_1sPermission.UPDATE,
-      _1_On_1sPermission.VIEW,
-    ],
+    example: [],
   })
   @IsOptional()
   @IsArray()

@@ -5,6 +5,7 @@ import {
   AuditLog,
   Backup,
   BackupSchema,
+  Notification,
   NotificationSchema,
 } from '../schemas';
 

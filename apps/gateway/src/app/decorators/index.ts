@@ -9,4 +9,3 @@ export * from './api-pagination.decorator';
 export * from './api-array-property.decorator';
 export * from './api-boolean-property.decorator';
 export * from './api-download-file.decorator';
-export * from './myTeamAccess.decorator';

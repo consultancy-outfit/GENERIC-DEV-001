@@ -1,7 +1,10 @@
 export enum SERVICES {
   USER_ACCOUNT_PROFILE = 'USER_ACCOUNT_PROFILE',
   NOTIFICATION = 'NOTIFICATION',
-  SYSTEM = 'SYSTEM',
+}
+
+export enum Role {
+  USER = 'USER',
 }
 
 export enum Gender {
@@ -44,6 +47,25 @@ export enum VerificationPlatformEnum {
   WEB_REACT_JS = 'Web-React-JS',
   IOS = 'IOS',
   ANDROID = 'Android',
+}
+
+export enum SwaggerQueryParamStyle {
+  CSV = 'form',
+  SPACE = 'spaceDelimited',
+  PIPE = 'pipeDelimited',
+}
+
+export const SwaggerStyleSeparators: Record<SwaggerQueryParamStyle, string> = {
+  [SwaggerQueryParamStyle.CSV]: ',',
+  [SwaggerQueryParamStyle.SPACE]: ' ',
+  [SwaggerQueryParamStyle.PIPE]: '|',
+};
+
+export enum FileContentTypes {
+  CSV = 'application/vnd.openxmlformats',
+  PDF = 'application/pdf',
+  JSON = 'application/json',
+  XLS = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 }
 
 export const SOCKET_ROOM = 'Logger';

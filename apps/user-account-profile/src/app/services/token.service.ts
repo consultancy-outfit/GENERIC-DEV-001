@@ -7,7 +7,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { createHmac } from 'crypto';
-import * as AWS from '@aws-sdk/client-cognito-identity-provider';
 import { VerifyTokenDto, RefreshTokenDto } from '../dto/token';
 import { JwtService } from '@nestjs/jwt';
 
@@ -17,8 +16,7 @@ export class TokenService {
 
   constructor(
     private config: ConfigService,
-    private jwtService: JwtService,
-    @Inject('CognitoIDP') private cognitoIDP: AWS.CognitoIdentityProvider
+    private jwtService: JwtService
   ) {}
 
   async signToken(payload): Promise<string> {

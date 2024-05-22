@@ -5,7 +5,6 @@ import {
   Transport,
 } from '@nestjs/microservices';
 import { SERVICES } from '@shared/constants';
-export * from './reference-data.service';
 
 export const MICRO_SERVICES = Object.values(SERVICES);
 

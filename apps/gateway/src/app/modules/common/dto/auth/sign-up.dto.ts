@@ -1,15 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsPhoneNumber,
   IsString,
-  MaxLength,
+  IsOptional,
+  IsEnum,
 } from 'class-validator';
 import { ApiResponseDto } from '@shared/dto';
-import { COMPANIES, CompanySize } from '@shared/constants';
+import { Role } from '@shared/constants';
 
 export class SignupRequestDto {
   @IsString()
@@ -40,42 +39,14 @@ export class SignupRequestDto {
       return `${property} is not valid .`;
     },
   })
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({ example: '+442071234567' })
   contactNumber: string;
-  @IsArray()
-  @IsEnum(COMPANIES, { each: true })
-  @ApiProperty({
-    enum: COMPANIES,
-    default: [COMPANIES.PERFORMANCE],
-    isArray: true,
-  })
-  allowedCompany: COMPANIES[];
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(50, { message: 'Company Name is too long.' })
-  @ApiProperty({ example: 'Orcalo' })
-  companyName: string;
-  @IsEnum(CompanySize)
-  @IsNotEmpty()
-  @ApiProperty({ enum: CompanySize })
-  companySize: string;
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: 'Pakistan' })
-  country: string;
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: 'Test111' })
-  companyNo: string;
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: 'Test Address' })
-  companyAddress: string;
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: '50000' })
-  postalCode: string;
+
+  @IsEnum(Role)
+  @IsOptional()
+  @ApiProperty({ example: Role.USER })
+  defaultRole: Role;
 }
 
 export class SignupResponseDto extends ApiResponseDto {
@@ -87,7 +58,7 @@ export class SignupResponseDto extends ApiResponseDto {
   data: any;
 
   @ApiProperty({
-    example: 'User signed up successfully. Kindly check your email address.',
+    example: 'Signed up successfully. Kindly check your email address.',
   })
   message: string;
 }
