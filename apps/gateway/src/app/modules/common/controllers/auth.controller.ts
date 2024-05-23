@@ -15,11 +15,8 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ApiDescription, ApiRoute } from '@gateway/decorators';
 import { ClientRMQ } from '@nestjs/microservices';
 import {
-  COMPANIES,
-  EmployeeStatus,
   MESSAGE_PATTERNS,
   NOTIFICATION_PATTERNS,
-  Role,
   SERVICES,
   VerificationStatusEnum,
 } from '@shared/constants';
@@ -73,52 +70,42 @@ const {
     ADMIN_GET_USER,
   },
   TOKEN: { VERIFY_TOKEN, REFRESH_TOKEN },
-} = MESSAGE_PATTERNS.USER_ACCOUNT;
+} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE;
 
 const {
   USER: {
     CREATE_USER_DB,
     GET_USER,
-    GET_USER_COMPANY,
     // VERIFY_CHANGE_EMAIL,
     // CHANGE_USER_EMAIL_ON_VERIFY,
     // CHECK_EMAIL,
     CHECK_USER_EMAIL_OR_PHONE,
     // REQUEST_VERIFICATION,
-    CREATE_COMPANY,
     IG_VERIFICATION,
     VERIFICATION_UPDATE,
     UPDATE_USER,
-    GET_USER_BY_EMAIL,
-    LOG_IN_AS_EMPLOYEE,
   },
-  COMPANY: { CHECK_REGISTER_COMPANY },
-} = MESSAGE_PATTERNS.USER_PROFILE;
-
-const { CREATE_INTERNAL_JOB_BOARD } = MESSAGE_PATTERNS.configuration.JOB_BOARD;
+} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE;
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   constructor(
-    @Inject(SERVICES.USER_ACCOUNT) private authClient: ClientRMQ,
-    @Inject(SERVICES.USER_PROFILE) private userClient: ClientRMQ,
-    @Inject(SERVICES.JOBS) private jobCLient: ClientRMQ,
+    @Inject(SERVICES.USER_ACCOUNT_PROFILE) private userAuthClient: ClientRMQ,
     @Inject(SERVICES.NOTIFICATION) private notification: ClientRMQ
   ) {}
 
-  @Post('signup-company')
+  @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  @ApiDescription('Company Account Sign up')
+  @ApiDescription('Account Sign up')
   @ApiCreatedResponse({
     type: SignupResponseDto,
   })
   async companySignup(@Body() dto: SignupRequestDto) {
-    const { companyName, firstName, lastName, email } = dto;
-
+    const { firstName, lastName, email } = dto;
     const isUniqueEmail = await firstValueFrom(
-      this.userClient.send(CHECK_USER_EMAIL_OR_PHONE, {
+      this.userAuthClient.send(CHECK_USER_EMAIL_OR_PHONE, {
         type: 'email',
         value: dto.email,
       })
@@ -128,76 +115,28 @@ export class AuthController {
       throw new ConflictException('Email is already registered.');
     }
 
-    const isUniqueCompany = await firstValueFrom(
-      this.userClient.send(CHECK_REGISTER_COMPANY, {
-        title: companyName,
-      })
-    );
-
-    if (isUniqueCompany) {
-      throw new ConflictException('Company is already registered.');
-    }
-
     const signupResponse = await firstValueFrom(
-      this.authClient.send(SIGNUP, {
-        ...dto,
-      })
-    );
-
-    const companyResponse = await firstValueFrom(
-      this.userClient.send(CREATE_COMPANY, {
-        ...dto,
-        title: companyName,
-        userId: signupResponse?.data?.userId,
+      this.userAuthClient.send(SIGNUP, {
+        password: dto.password,
       })
     );
 
     await firstValueFrom(
-      this.userClient.send(CREATE_USER_DB, {
+      this.userAuthClient.send(CREATE_USER_DB, {
         _id: signupResponse?.data?.userId,
         password: signupResponse?.data?.hashedPassword,
         temporaryPassword: true,
-        businessName: companyName,
         ...dto,
-        isCompanyAdmin: true,
-        companyId: companyResponse._id,
-        defaultRole: Role.COMPANY_ADMIN,
       })
     );
 
-    this.jobCLient.emit(CREATE_INTERNAL_JOB_BOARD, {
-      companyId: companyResponse._id,
-      companyName,
-    });
-
-    this.userClient.emit(IG_VERIFICATION, {
+    this.userAuthClient.emit(IG_VERIFICATION, {
       userId: signupResponse?.data?.userId,
       email,
       firstName,
       lastName,
     });
     return { userId: signupResponse?.data?.userId };
-  }
-
-  @Post('approve-company')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiDescription('Company Account Approval')
-  @ApiCreatedResponse({
-    type: SignupResponseDto,
-  })
-  async companyApproval(@Body() dto: CompanyApprovalRequestDto) {
-    const userprofile = await firstValueFrom(
-      this.userClient.send(GET_USER, {
-        ...dto,
-      })
-    );
-
-    await firstValueFrom(
-      this.authClient.send(COMPANY_APPROVAL, {
-        email: userprofile?.email,
-      })
-    );
-    return null;
   }
 
   // @Get('verify-email')
@@ -211,13 +150,13 @@ export class AuthController {
   //   @Query('userId') userId: string,
   // ) {
   //   const verifyEmail = await firstValueFrom(
-  //     this.authClient.send(VERIFY_EMAIL, { code, userId: userId }),
+  //     this.userAuthClient.send(VERIFY_EMAIL, { code, userId: userId }),
   //   );
   //   if (verifyEmail) {
-  //     this.userClient.emit(VERIFY_USER_EMAIL, { userId: userId });
+  //     this.userAuthClient.emit(VERIFY_USER_EMAIL, { userId: userId });
   //   }
   //   const userData = await firstValueFrom(
-  //     this.userClient.send(GET_USER_ESSENTIALS, { userId: userId }),
+  //     this.userAuthClient.send(GET_USER_ESSENTIALS, { userId: userId }),
   //   );
   //   return { ...verifyEmail, data: userData };
   // }
@@ -229,7 +168,7 @@ export class AuthController {
   //   type: ResendLinkResponseDto,
   // })
   // async resendLink(@Body() dto: ResendLinkRequestDto) {
-  //   return this.authClient.send(RESEND_LINK, dto);
+  //   return this.userAuthClient.send(RESEND_LINK, dto);
   // }
 
   // @Get('verification-status')
@@ -250,7 +189,7 @@ export class AuthController {
   // })
   // async verificationStatus(@Query('userId') userId: string) {
   //   const { data } = await firstValueFrom(
-  //     this.userClient.send(GET_USER_FOR_AUTH, { userId }),
+  //     this.userAuthClient.send(GET_USER_FOR_AUTH, { userId }),
   //   );
   //   const dateDifference = new Date().getTime() - new Date(data.idVerificationStartDate).getTime();
   //   const daysDifference = Math.floor(dateDifference / (1000 * 60 * 60 * 24));
@@ -275,11 +214,11 @@ export class AuthController {
   // })
   // async resendLink(@Body() dto: ResendLinkRequestDto) {
   //   const { data: userProfileData } = await firstValueFrom(
-  //     this.userClient.send(GET_USER, {
+  //     this.userAuthClient.send(GET_USER, {
   //       userId: dto.userId,
   //     }),
   //   );
-  //   this.userClient.emit(REQUEST_VERIFICATION, {
+  //   this.userAuthClient.emit(REQUEST_VERIFICATION, {
   //     ...dto,
   //     email: userProfileData.email,
   //     firstName: userProfileData.firstName,
@@ -299,15 +238,14 @@ export class AuthController {
     let userProfile: any = {};
 
     const { user, authToken, refreshToken, expiresIn } = await firstValueFrom(
-      this.authClient.send(SIGNIN, dto)
+      this.userAuthClient.send(SIGNIN, dto)
     );
 
-    if (!userProfile?.googleUserId) {
-      const userProfileData = await firstValueFrom(
-        this.userClient.send(GET_USER_COMPANY, { userId: user.userId })
-      );
-      userProfile = userProfileData;
-    }
+    const userProfileData = await firstValueFrom(
+      this.userAuthClient.send(GET_USER, { userId: user.userId })
+    );
+    userProfile = userProfileData;
+
     return {
       authToken: authToken,
       refreshToken: refreshToken,
@@ -325,14 +263,14 @@ export class AuthController {
   async verifyToken(@Body() dto: VerifyTokenRequestDto) {
     if (!dto.idToken) {
       const { data } = await firstValueFrom(
-        this.authClient.send(VERIFY_TOKEN, {
+        this.userAuthClient.send(VERIFY_TOKEN, {
           token: dto.accessToken,
         })
       );
       return { user: { ...data } };
     }
     const { data } = await firstValueFrom(
-      this.authClient.send(VERIFY_TOKEN, {
+      this.userAuthClient.send(VERIFY_TOKEN, {
         tokenUse: 'id',
         token: dto.idToken,
       })
@@ -341,7 +279,7 @@ export class AuthController {
     const { userId, googleUserId, ..._user } = data;
 
     const { data: _userProfileData } = await firstValueFrom(
-      this.authClient.send(ADMIN_GET_USER, {
+      this.userAuthClient.send(ADMIN_GET_USER, {
         userId: googleUserId || userId,
       })
     );
@@ -357,7 +295,7 @@ export class AuthController {
   })
   async refreshToken(@Body() dto: RefreshTokenDto) {
     const response: any = await firstValueFrom(
-      this.authClient.send(REFRESH_TOKEN, {
+      this.userAuthClient.send(REFRESH_TOKEN, {
         email: dto.userId?.toLowerCase(),
         refreshToken: dto.refreshToken,
       })
@@ -372,32 +310,25 @@ export class AuthController {
     type: ChangePasswordResponseDto,
   })
   async setNewPassword(@Body() dto: SetNewPasswordRequestDto) {
-    const { email: userId } = dto;
+    const { email } = dto;
 
     const response = await firstValueFrom(
-      this.authClient.send(SET_NEW_PASSWORD, { ...dto })
+      this.userAuthClient.send(SET_NEW_PASSWORD, { ...dto })
     );
     // Get User Role
     const userProfile = await firstValueFrom(
-      this.userClient.send(GET_USER_BY_EMAIL, {
-        email: userId,
+      this.userAuthClient.send(CHECK_USER_EMAIL_OR_PHONE, {
+        type: 'email',
+        value: email,
       })
     );
 
     // for employee update the employee status
-    if (userProfile?.defaultRole == 'EMPLOYEE') {
-      const userId = userProfile._id;
-      const obj = {
-        userId,
-        employeeStatus: EmployeeStatus.ACTIVE,
-      };
-      await firstValueFrom(this.userClient.send(UPDATE_USER, obj));
-    } else {
-      await firstValueFrom(
-        this.userClient.send(GET_USER_EMAIL_TO_SET_PASSWORD, { email: userId })
-      );
-    }
-
+    const obj = {
+      userId: userProfile._id,
+      isActive: true,
+    };
+    await firstValueFrom(this.userAuthClient.send(UPDATE_USER, obj));
     return response?.data;
   }
 
@@ -409,7 +340,7 @@ export class AuthController {
   })
   async forgotPassword(@Body() dto: ForgotPasswordRequestDto) {
     const response = await firstValueFrom(
-      this.authClient.send(FORGOT_PASSWORD, dto)
+      this.userAuthClient.send(FORGOT_PASSWORD, dto)
     );
     return response;
   }
@@ -422,7 +353,7 @@ export class AuthController {
   })
   async confirmForgotPassword(@Body() dto: ConfirmForgotPasswordRequestDto) {
     const response = await firstValueFrom(
-      this.authClient.send(CONFIRM_FORGOT_PASSWORD, dto)
+      this.userAuthClient.send(CONFIRM_FORGOT_PASSWORD, dto)
     );
     return response;
   }
@@ -432,30 +363,29 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async verificationUpdate(@Body() dto: UpdateIdentitySessionDto) {
     const response = await firstValueFrom(
-      this.userClient.send(VERIFICATION_UPDATE, { ...dto })
+      this.userAuthClient.send(VERIFICATION_UPDATE, { ...dto })
     );
     if (dto.status === VerificationStatusEnum.APPROVED) {
-      const signupResponse = await firstValueFrom(
-        this.authClient.send(SIGNUP, {
-          ...dto,
-        })
-      );
+      // const signupResponse = await firstValueFrom(
+      //   this.userAuthClient.send(SIGNUP, {
+      //     ...dto,
+      //   })
+      // );
 
-      await firstValueFrom(
-        this.userClient.send(UPDATE_USER, {
-          userId: response?._id,
-          password: signupResponse?.data?.hashedPassword,
-          temporaryPassword: true,
-        })
-      );
+      // await firstValueFrom(
+      //   this.userAuthClient.send(UPDATE_USER, {
+      //     userId: response?._id,
+      //     password: signupResponse?.data?.hashedPassword,
+      //     temporaryPassword: true,
+      //   })
+      // );
 
       this.notification.emit(NOTIFICATION_PATTERNS.GENERAL.SIGNUP_SUCCESS, {
         userId: response?._id,
         firstName: response?.firstName,
         lastName: response?.lastName,
         email: response?.email,
-        password: signupResponse?.data?.password,
-        company: response?.allowedCompany?.[0] ?? COMPANIES.RECRUITMENT,
+        // password: signupResponse?.data?.password,
       });
     }
     return response;
@@ -476,7 +406,7 @@ export class AuthController {
   ) {
     const accessToken = request.headers.authorization.replace('Bearer ', '');
     await firstValueFrom(
-      this.authClient.send(CHANGE_PASSWORD, { accessToken, ...dto })
+      this.userAuthClient.send(CHANGE_PASSWORD, { accessToken, ...dto })
     );
     return null;
   }
@@ -491,7 +421,9 @@ export class AuthController {
     type: VerifyPasswordResponseDto,
   })
   async verifyPassword(@Body() dto: VerifyPasswordRequestDto) {
-    const { user } = await firstValueFrom(this.authClient.send(SIGNIN, dto));
+    const { user } = await firstValueFrom(
+      this.userAuthClient.send(SIGNIN, dto)
+    );
     return { userId: user?.userId };
   }
 
@@ -506,7 +438,7 @@ export class AuthController {
   // })
   // async changeEmail(@Req() { user }, @Body() dto: ChangeEmailRequestDto) {
   //   const passwordVerifiedUser = await firstValueFrom(
-  //     this.authClient.send(SIGNIN, {
+  //     this.userAuthClient.send(SIGNIN, {
   //       email: user.email?.toLowerCase(),
   //       // password: dto.password,
   //     }),
@@ -515,7 +447,7 @@ export class AuthController {
   //     throw new BadRequestException('You already have the same email');
   //   }
   //   const checkEmail = await firstValueFrom(
-  //     this.userClient.send(CHECK_EMAIL, {
+  //     this.userAuthClient.send(CHECK_EMAIL, {
   //       email: dto.newEmail?.toLowerCase(),
   //       sendData: true,
   //     }),
@@ -526,7 +458,7 @@ export class AuthController {
   //   const verifiedUser = passwordVerifiedUser.user;
   //   verifiedUser.newEmail = dto.newEmail;
   //   const emailUpdatedOnCognito = await firstValueFrom(
-  //     this.authClient.send(ADMIN_UPDATE_USER_EMAIL, { ...verifiedUser }),
+  //     this.userAuthClient.send(ADMIN_UPDATE_USER_EMAIL, { ...verifiedUser }),
   //   );
   //   return emailUpdatedOnCognito;
   // }
@@ -543,17 +475,17 @@ export class AuthController {
   // async verifyChangeEmail(@Query('code') code: string, @Req() req) {
   //   const accessToken = req.headers.authorization.replace('Bearer ', '');
   //   const verifyEmail = await firstValueFrom(
-  //     this.authClient.send(VERIFY_CHANGE_EMAIL, {
+  //     this.userAuthClient.send(VERIFY_CHANGE_EMAIL, {
   //       code,
   //       accessToken,
   //     }),
   //   );
   //   if (verifyEmail) {
   //     const userData = await firstValueFrom(
-  //       this.authClient.send(ADMIN_GET_USER, { userId: req.user.userId }),
+  //       this.userAuthClient.send(ADMIN_GET_USER, { userId: req.user.userId }),
   //     );
   //     await firstValueFrom(
-  //       this.userClient.send(CHANGE_USER_EMAIL_ON_VERIFY, {
+  //       this.userAuthClient.send(CHANGE_USER_EMAIL_ON_VERIFY, {
   //         userId: userData.data.userId,
   //         newEmail: userData.data.email,
   //       }),
@@ -578,23 +510,13 @@ export class AuthController {
 
   @Put('signout')
   @ApiRoute({
-    name: 'account sign out',
+    name: 'Account sign out',
     description: 'Account Sign out',
   })
   @ApiOkResponse({
     type: SignOutResponseDto,
   })
-  async signout(@Req() { user, userProfile }) {
-    if (userProfile.loggedInAs) {
-      await firstValueFrom(
-        this.userClient.send(LOG_IN_AS_EMPLOYEE, {
-          userId: userProfile.loggedInAs,
-          adminId: user.userId,
-          activate: false,
-          companyId: userProfile.companyId,
-        })
-      );
-    }
+  async signout() {
     return null;
   }
 }

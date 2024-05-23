@@ -1,4 +1,3 @@
-import { COMPANIES } from '@shared/constants';
 import { EmailChannel } from '../../channels/email.channel';
 import { Notification } from '../../interfaces/notification.interface';
 
@@ -18,14 +17,9 @@ export class SignupSuccessNotification implements Notification {
   private template: string;
 
   constructor(data: IData) {
-    if (data.company == COMPANIES.RECRUITMENT) {
-      data.company = 'recruiting-pl';
-    }
     this.data = {
       ...data,
-      link: `https://${data.company.toLowerCase()}.apiswagger.co.uk/set-new-password?email=${
-        data.email
-      }`,
+      link: `https://${process.env.FE_BASE_URI}/set-new-password?email=${data.email}`,
     };
     this.message =
       "Congratulations! You're onboard! Welcome to Personnel Library";

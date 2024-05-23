@@ -8,7 +8,6 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiResponseDto } from '@shared/dto';
-import { COMPANIES, CompanySize } from '@shared/constants';
 
 export class UpdateCompanyManagementUserRequestDto {
   @IsString()
@@ -29,22 +28,11 @@ export class UpdateCompanyManagementUserRequestDto {
   @ApiProperty({ example: '+442071234567' })
   contactNumber: string;
   @IsArray()
-  @IsEnum(COMPANIES, { each: true })
-  @ApiProperty({
-    enum: COMPANIES,
-    default: [COMPANIES.PERFORMANCE],
-    isArray: true,
-  })
-  allowedCompany: COMPANIES[];
   @IsString()
   @IsNotEmpty()
   @MaxLength(50, { message: 'Company Name is too long.' })
   @ApiProperty({ example: 'Orcalo' })
   companyName: string;
-  @IsEnum(CompanySize)
-  @IsNotEmpty()
-  @ApiProperty({ enum: CompanySize })
-  companySize: string;
   //   @IsString()
   //   @IsNotEmpty()
   //   @ApiProperty({ example: 'Pakistan' })

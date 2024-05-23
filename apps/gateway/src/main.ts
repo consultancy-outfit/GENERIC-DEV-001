@@ -10,12 +10,8 @@ import { join } from 'path';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { SwaggerService } from '@shared';
-import { COMPANIES } from '@shared/constants';
 import { exitHandler, toCapitalizeFirst, toTitleCase } from '@shared/utils';
 import { CommonModule } from './app/modules/common/common.module';
-import { OnboardingModule } from './app/modules/onboarding/onboarding.module';
-import { RecruitmentModule } from './app/modules/recruitment/recruitment.module';
-import { PerformanceModule } from './app/modules/performance/performance.module';
 import { writeFileSync } from 'fs';
 
 const extractErrorMessages = (
@@ -84,7 +80,7 @@ async function bootstrap() {
   /* Swagger UI Generation Configuration */
   const documentConfig = new DocumentBuilder()
     .setTitle(
-      `Personnel Library (<COMPANY>) - API Gateway (${toTitleCase(
+      `Generic (<COMPANY>) - API Gateway (${toTitleCase(
         config.get('NODE_ENV') || 'development'
       )})`
     )
@@ -96,37 +92,9 @@ async function bootstrap() {
     .build();
 
   // ONBOARDING
-  new SwaggerService(
-    '/api/onboarding',
-    app,
-    documentConfig,
-    COMPANIES.ONBOARDING,
-    {
-      include: [CommonModule, OnboardingModule],
-    }
-  ).init();
-
-  // RECRUITMENT
-  new SwaggerService(
-    '/api/recruitment',
-    app,
-    documentConfig,
-    COMPANIES.RECRUITMENT,
-    {
-      include: [CommonModule, RecruitmentModule],
-    }
-  ).init();
-
-  // PERFORMANCE
-  new SwaggerService(
-    '/api/performance',
-    app,
-    documentConfig,
-    COMPANIES.PERFORMANCE,
-    {
-      include: [CommonModule, PerformanceModule],
-    }
-  ).init();
+  new SwaggerService('/api/docs', app, documentConfig, 'Main', {
+    include: [CommonModule],
+  }).init();
 
   writeFileSync(
     join(__dirname, 'spec.json'),
@@ -134,7 +102,7 @@ async function bootstrap() {
   );
 
   app.use(
-    ['/api/*'],
+    ['/api/docs', '/api/docs-json', '/api/docs-yml'],
     expressBasicAuth({
       challenge: true,
       users: {

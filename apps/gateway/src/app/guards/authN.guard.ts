@@ -12,22 +12,19 @@ import { ClientRMQ } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { UserDisabledException } from '../exceptions/user-disabled.exception';
 import { AccessRevokedException } from '../exceptions/user-access-revoked.exception';
-import { MESSAGE_PATTERNS, Role, SERVICES } from '@shared/constants';
+import { MESSAGE_PATTERNS, SERVICES } from '@shared/constants';
 
 const {
   TOKEN: { VERIFY_TOKEN },
-} = MESSAGE_PATTERNS.USER_ACCOUNT;
-const { GET_USER_FOR_AUTH } = MESSAGE_PATTERNS.USER_PROFILE.USER;
-
-const NO_LOGIN_AS_ROUTES = ['/auth/signout', '/employees/:id/login-as'];
+} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE;
+const { GET_USER_FOR_AUTH } = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.USER;
 
 @Injectable()
 export class AuthNGuard implements CanActivate {
   private readonly logger = new Logger('AuthNGuard');
   constructor(
     private reflector: Reflector,
-    @Inject(SERVICES.USER_ACCOUNT) private authClient: ClientRMQ,
-    @Inject(SERVICES.USER_PROFILE) private userClient: ClientRMQ
+    @Inject(SERVICES.USER_ACCOUNT_PROFILE) private authClient: ClientRMQ
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,11 +34,6 @@ export class AuthNGuard implements CanActivate {
     );
 
     if (secured) {
-      const myTeamAccess = this.reflector.get<boolean>(
-        'myTeamAccess',
-        context.getHandler()
-      );
-
       try {
         const token = this.getToken(context);
         const { data: user } = await firstValueFrom(
@@ -49,7 +41,7 @@ export class AuthNGuard implements CanActivate {
         );
         let userProfile;
         const { data } = await firstValueFrom(
-          this.userClient.send(GET_USER_FOR_AUTH, { userId: user.userId })
+          this.authClient.send(GET_USER_FOR_AUTH, { userId: user.userId })
         );
 
         userProfile = data;
@@ -65,48 +57,6 @@ export class AuthNGuard implements CanActivate {
             new Date().getTime() - new Date(userProfile.revokeAccess).getTime();
           if (diff > 0) {
             throw new AccessRevokedException('Your account has been revoked');
-          }
-        }
-
-        if (userProfile.loggedInAs) {
-          const request = context.switchToHttp().getRequest();
-          if (
-            request.method != 'GET' &&
-            !NO_LOGIN_AS_ROUTES.includes(request.route.path)
-          ) {
-            throw new ForbiddenException(
-              'Unable to perform this operation in this session.'
-            );
-          }
-          if (!NO_LOGIN_AS_ROUTES.includes(request.route.path)) {
-            const { data } = await firstValueFrom(
-              this.userClient.send(GET_USER_FOR_AUTH, {
-                userId: userProfile.loggedInAs,
-              })
-            );
-            context.switchToHttp().getRequest().loggedInBy = userProfile.userId;
-            userProfile = data;
-          }
-        }
-
-        if (myTeamAccess) {
-          const request = context.switchToHttp().getRequest();
-          if (request.query.memberId) {
-            const { data } = await firstValueFrom(
-              this.userClient.send(GET_USER_FOR_AUTH, {
-                userId: request.query.memberId,
-              })
-            );
-            if (
-              data.managerId === userProfile.userId ||
-              userProfile.defaultRole === Role.COMPANY_ADMIN
-            ) {
-              userProfile = data;
-            } else {
-              throw new ForbiddenException(
-                'Unable to perform this operation for this user.'
-              );
-            }
           }
         }
 

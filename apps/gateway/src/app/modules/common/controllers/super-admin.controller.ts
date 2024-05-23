@@ -27,11 +27,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
-  COMPANIES,
   MESSAGE_PATTERNS,
   SERVICES,
   VerificationStatusEnum,
-  successResponse,
 } from '@shared/constants';
 import {
   // AddUserDto,
@@ -51,9 +49,7 @@ import {
   ForgotPasswordRequestDto,
   UpdateCompanyManagementUserRequestDto,
 } from '../dto/auth';
-import { ListAuditLogDto } from '../dto/user/audit-log.dto';
 import { AddReminderRequestDto } from '../dto/auth';
-import { ScheduleADemoRequestDto } from '../dto/user/schedule-demo.dto';
 // import { ProductNameEnum } from '../../../interfaces/jobs';
 import { EmailResponseDto, EmailParamDto, SendEmailDto } from '../dto/common';
 import { CommonService } from '@shared';
@@ -70,35 +66,25 @@ const {
     GET_TOTAL_COUNT,
     GET_VERIFIED_PRODUCT_COUNT,
   },
-} = MESSAGE_PATTERNS.USER_ACCOUNT;
+} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE;
 
 const {
   USER: {
-    SCHEDULE_A_DEMO,
-    LIST_SCHEDULE_DEMOS,
-    // CREATE_USER,
+    CREATE_USER_DB,
     // LIST_ALL_USERS,
     CHANGE_USER_STATUS,
     GET_USER,
     UPDATE_USER,
-    ADMIN_ADD_USER_DB,
-    LIST_SYSTEM_ADMIN_USERS,
-    GET_ADMIN_USER,
-    UPDATE_WITH_COMPANY_USER,
-    DROPDOWN_LIST_SYSTEM_ADMIN_USERS,
     // LIST_COMPANY_USERS,
   },
-  COMPANY: { UPDATE_COMPANY },
-} = MESSAGE_PATTERNS.USER_PROFILE;
-
-const { GET_COMPANIES } = MESSAGE_PATTERNS.COMPANIES;
+} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE;
 
 const {
   ADMIN_ADD_REMINDER,
   ADMIN_GET_REMINDER,
   ADMIN_LIST_REMINDERS,
   LIST_CONNECTED_DEVICES,
-} = MESSAGE_PATTERNS.USER_ACCOUNT.ADMIN_USER;
+} = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.ADMIN_USER;
 
 @ApiTags('Super Admin')
 @Controller('super-admin')
@@ -106,9 +92,7 @@ export class SuperAdminController {
   protected readonly logger = new Logger(SuperAdminController.name);
 
   constructor(
-    @Inject(SERVICES.USER_ACCOUNT) private adminAuthClient: ClientRMQ,
-    @Inject(SERVICES.USER_PROFILE) private userClient: ClientRMQ,
-    @Inject(SERVICES.SYSTEM) private systemClient: ClientRMQ,
+    @Inject(SERVICES.USER_ACCOUNT_PROFILE) private userAuthClient: ClientRMQ,
     private commonService: CommonService
   ) {}
 
@@ -119,15 +103,11 @@ export class SuperAdminController {
   @ApiCreatedResponse({
     type: CreateUserResponseDto,
   })
-  async adminCreateUser(
-    @Req() { user },
-    @Req() { userProfile: { companyId } },
-    @Body() payload: AdminAddUserDto
-  ) {
+  async adminCreateUser(@Req() { user }, @Body() payload: AdminAddUserDto) {
     const { email, ...attributes } = payload;
 
     const { data } = await firstValueFrom(
-      this.adminAuthClient.send(SIGNUP, {
+      this.userAuthClient.send(SIGNUP, {
         email: email?.toLowerCase(),
       })
       // .pipe(timeout(10000))
@@ -137,7 +117,6 @@ export class SuperAdminController {
     //   'SIGNUP',
     //   user,
     //   'user',
-    //   companyId,
     //   'createdBy',
     //   data?.hashedPassword
     // );
@@ -173,11 +152,10 @@ export class SuperAdminController {
     //  createdBy 'e5c23da0-ea2c-4f3c-8510-23d2b1874d11'
 
     await firstValueFrom(
-      this.userClient.send(ADMIN_ADD_USER_DB, {
+      this.userAuthClient.send(CREATE_USER_DB, {
         _id: user?.data?.userId,
         password: data?.hashedPassword,
         temporaryPassword: true,
-        companyId,
         email: email?.toLowerCase(),
         ...attributes,
 
@@ -188,120 +166,6 @@ export class SuperAdminController {
 
     return data;
   }
-
-  @Post('user-schedule-demo')
-  async scheduleADemo(@Body() payload: ScheduleADemoRequestDto) {
-    const { id, demoDateAndTime, demoLink } = payload;
-
-    const data = await firstValueFrom(
-      this.userClient.send(SCHEDULE_A_DEMO, {
-        id,
-        demoDateAndTime,
-        demoLink,
-      })
-    );
-
-    return data;
-  }
-
-  @Get('list-schedule-demos/:month/:year')
-  @ApiDescription('list-schedule-demos')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({
-    description: 'Success',
-  })
-  @ApiParam({
-    name: 'month',
-    required: true,
-    example: 10,
-  })
-  @ApiParam({
-    name: 'year',
-    required: true,
-    example: 2023,
-  })
-  async listScheduleDemos(
-    @Param('month') month: number,
-    @Param('year') year: number
-  ) {
-    const demos = await firstValueFrom(
-      this.userClient.send(LIST_SCHEDULE_DEMOS, {
-        month,
-        year,
-      })
-    );
-
-    return demos;
-  }
-  @AuthN()
-  @Get('system-admin/get-all-users')
-  // @ApiRoute({
-  //   name: 'Users',
-  //   description: 'Get All User',
-  //   permission: "view_users",
-  // })
-  @ApiQuery({
-    name: 'status',
-    type: 'boolean',
-    required: false,
-  })
-  @ApiPagination('First name, Last name')
-  @ApiOkResponse({
-    type: ListUsersResponseDto,
-  })
-  @ApiQuery({
-    name: 'companyUser',
-    type: 'boolean',
-    required: false,
-  })
-  async listAllUsers(
-    @Req() { user: { userId } },
-    @Query('search') search: string,
-    @Query('limit') limit: number,
-    @Query('offset') offset: number,
-    @Query('status') status: string,
-    @Query('companyUser') companyUser: string
-  ) {
-    const users = await firstValueFrom(
-      this.userClient
-        .send(LIST_SYSTEM_ADMIN_USERS, {
-          userId,
-          search,
-          limit,
-          offset,
-          status,
-          companyUser,
-          // role:roles[0]
-        })
-        .pipe(timeout(5000))
-    );
-    return users;
-  }
-  ////////////////////////////////////////////////////////////// Dropdown List System Admin Users ///////////////////////////////////////
-  // @AuthN()
-  @Get('system-admin/dropdown-get-all-users')
-  @ApiOkResponse({
-    type: ListUsersResponseDto,
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-  })
-  async dropdownListAllUser(
-    // @Req() { user: { userId } },
-    @Query('search') search: string
-  ) {
-    const users = await firstValueFrom(
-      this.userClient
-        .send(DROPDOWN_LIST_SYSTEM_ADMIN_USERS, {
-          // userId,
-          search,
-        })
-        .pipe(timeout(5000))
-    );
-    return users;
-  }
-  /////////////////////////////////////////////////////////////////
 
   @Patch('system-admin/update-user/:userId')
   @ApiParam({
@@ -320,14 +184,14 @@ export class SuperAdminController {
     const { email, ...data } = dto;
 
     const _userAccountData = await firstValueFrom(
-      this.adminAuthClient.send(ADMIN_UPDATE_USER, {
+      this.userAuthClient.send(ADMIN_UPDATE_USER, {
         userId,
         email,
       })
     );
 
     const response = await firstValueFrom(
-      this.userClient.send(UPDATE_USER, {
+      this.userAuthClient.send(UPDATE_USER, {
         userId,
         email,
         ...data,
@@ -342,11 +206,11 @@ export class SuperAdminController {
     const id = body.userId;
     const payload = { id, ...body };
     const data = await firstValueFrom(
-      this.userClient.send(CHANGE_USER_STATUS, payload)
+      this.userAuthClient.send(CHANGE_USER_STATUS, payload)
     );
 
     const _cong = await firstValueFrom(
-      this.adminAuthClient.send(ADMIN_USER_CHANGE_STATUS, {
+      this.userAuthClient.send(ADMIN_USER_CHANGE_STATUS, {
         isActive: data.isActive,
         userId: payload.userId,
       })
@@ -362,7 +226,9 @@ export class SuperAdminController {
     const payload = {
       userId: id?.id,
     };
-    const user = await firstValueFrom(this.userClient.send(GET_USER, payload));
+    const user = await firstValueFrom(
+      this.userAuthClient.send(GET_USER, payload)
+    );
     return user;
   }
   // @AuthN()
@@ -371,31 +237,9 @@ export class SuperAdminController {
   //   const id = body.userId;
   //   const payload = { id, ...body };
   //    const data =  await firstValueFrom(
-  //       this.userClient.send(CHANGE_USER_STATUS, payload),
+  //       this.userAuthClient.send(CHANGE_USER_STATUS, payload),
   //     )
   //    }
-
-  @AuthN()
-  @Get('audit-logs')
-  @ApiDescription('Get All Audit Log')
-  @HttpCode(HttpStatus.OK)
-  async getAllAuditLogs(@Query() query: ListAuditLogDto) {
-    return await firstValueFrom(
-      this.systemClient.send(ADMIN_GET_ALL_LOG, query).pipe(timeout(10000))
-    );
-  }
-
-  @AuthN()
-  @Get('audit-trail-recent-activities')
-  @ApiDescription('Get recent activities Audit Trail')
-  @HttpCode(HttpStatus.OK)
-  async getRecentAuditTrail() {
-    return await firstValueFrom(
-      this.systemClient
-        .send(ADMIN_GET_RECENT_AUDIT_TRAIL, {})
-        .pipe(timeout(10000))
-    );
-  }
 
   @Post('reset-password')
   @ApiDescription('Admin Reset Password')
@@ -405,68 +249,13 @@ export class SuperAdminController {
   })
   async resetPassword(@Body() dto: ForgotPasswordRequestDto) {
     const response = await firstValueFrom(
-      this.adminAuthClient.send(FORGOT_PASSWORD, dto).pipe(timeout(5000))
+      this.userAuthClient.send(FORGOT_PASSWORD, dto).pipe(timeout(5000))
     );
-    return successResponse(response);
-  }
-
-  @Get('company-user/get-all-users')
-  // @AuthN()
-  // @ApiRoute({
-  //   name: 'Users',
-  //   description: 'Get All User',
-  //   permission: "view_users",
-  // })
-  @ApiQuery({
-    name: 'productName',
-    enum: COMPANIES,
-    example: COMPANIES,
-    required: false,
-  })
-  @ApiQuery({
-    name: 'verificationStatus',
-    enum: VerificationStatusEnum,
-    example: VerificationStatusEnum,
-    required: false,
-  })
-  @ApiQuery({
-    name: 'companyRegistered',
-    type: 'boolean',
-    required: false,
-  })
-  @ApiPagination('First name, Last name, Business name')
-  @ApiOkResponse({
-    type: ListUsersResponseDto,
-  })
-  async listCompanyUsers(
-    // @Req() { user: { userId } },
-    @Query('productName') productName: string,
-    @Query('search') search: string,
-    @Query('limit') limit: number,
-    @Query('offset') offset: number,
-    @Query('companyRegistered') companyRegistered: boolean,
-    @Query('verificationStatus') verificationStatus: string
-  ) {
-    try {
-      const data = await firstValueFrom(
-        this.userClient.send(GET_COMPANIES, {
-          search,
-          companyRegistered,
-          limit,
-          offset,
-          productName,
-          verificationStatus,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      throw Error(error);
-    }
+    return response;
   }
 
   //   const users = await firstValueFrom(
-  //     this.userClient.send(LIST_COMPANY_USERS, {
+  //     this.userAuthClient.send(LIST_COMPANY_USERS, {
   //       // userId,
   //       search,
   //       limit,
@@ -494,7 +283,7 @@ export class SuperAdminController {
   ) {
     const { email, ...data } = dto;
     const _userAccountData = await firstValueFrom(
-      this.adminAuthClient
+      this.userAuthClient
         .send(ADMIN_UPDATE_USER, {
           userId,
           email,
@@ -503,7 +292,7 @@ export class SuperAdminController {
     );
 
     const { data: _userProfileData } = await firstValueFrom(
-      this.userClient
+      this.userAuthClient
         .send(UPDATE_USER, {
           userId,
           ...data,
@@ -525,7 +314,7 @@ export class SuperAdminController {
   })
   async addReminder(@Body() dto: AddReminderRequestDto) {
     const reminder = await firstValueFrom(
-      this.adminAuthClient.send(ADMIN_ADD_REMINDER, dto)
+      this.userAuthClient.send(ADMIN_ADD_REMINDER, dto)
     );
 
     return reminder;
@@ -552,7 +341,7 @@ export class SuperAdminController {
     @Param('year') year: number
   ) {
     const reminders = await firstValueFrom(
-      this.adminAuthClient.send(ADMIN_LIST_REMINDERS, {
+      this.userAuthClient.send(ADMIN_LIST_REMINDERS, {
         month,
         year,
       })
@@ -581,7 +370,7 @@ export class SuperAdminController {
   })
   async getReminder(@Query('date') date: string, @Query('time') time: string) {
     const reminder = await firstValueFrom(
-      this.adminAuthClient.send(ADMIN_GET_REMINDER, {
+      this.userAuthClient.send(ADMIN_GET_REMINDER, {
         date,
         time,
       })
@@ -618,7 +407,7 @@ export class SuperAdminController {
     @Query('paginationToken') paginationToken: string
   ) {
     const connectedDevices = await firstValueFrom(
-      this.adminAuthClient.send(LIST_CONNECTED_DEVICES, {
+      this.userAuthClient.send(LIST_CONNECTED_DEVICES, {
         accessToken,
         limit,
         paginationToken,
@@ -633,33 +422,18 @@ export class SuperAdminController {
     type: GetUserCountResponseDto,
   })
   async userTotalCount() {
-    return await this.adminAuthClient.send(GET_TOTAL_COUNT, {});
+    return await this.userAuthClient.send(GET_TOTAL_COUNT, {});
   }
   @ApiOkResponse({
     type: GetVerifiedProductCountDto,
   })
   @Get('verified-products-count')
   async verifiedDocumentsCount() {
-    return await this.adminAuthClient.send(GET_VERIFIED_PRODUCT_COUNT, {
+    return await this.userAuthClient.send(GET_VERIFIED_PRODUCT_COUNT, {
       // userId,
       // roles,
       // Im,
     });
-  }
-
-  @AuthN()
-  @Get('view-profile')
-  @ApiOkResponse({
-    type: ViewProfileResponseDto,
-  })
-  async viewProfile(@Req() { user: { userId } }) {
-    const data = await firstValueFrom(
-      this.userClient.send(GET_ADMIN_USER, {
-        userId,
-      })
-    );
-
-    return data;
   }
 
   @Post('send-email')
@@ -684,34 +458,5 @@ export class SuperAdminController {
     // If no scheduling, send email immediately
     await this.commonService.sendMail(payload);
     return 'Email Sent!';
-  }
-
-  @Patch('company-management/update-user/:userId')
-  @ApiParam({
-    name: 'userId',
-    required: true,
-  })
-  @HttpCode(HttpStatus.ACCEPTED)
-  @ApiDescription('Admin Update Company Management User')
-  @ApiAcceptedResponse({
-    type: UpdateSingleUserRequestDto,
-  })
-  async updateCompanyManagementUser(
-    @Param('userId') userId: string,
-    @Body() dto: UpdateCompanyManagementUserRequestDto
-  ) {
-    const response = await firstValueFrom(
-      this.userClient.send(UPDATE_WITH_COMPANY_USER, {
-        ...dto,
-        userId,
-      })
-    );
-    await firstValueFrom(
-      this.userClient.send(UPDATE_COMPANY, {
-        ...dto,
-        companyId: response.companyId,
-      })
-    );
-    return response;
   }
 }

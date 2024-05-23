@@ -1,5 +1,11 @@
+import { ApiSingleFile } from '@gateway/decorators';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiResponseDto } from '@shared/dto';
+
+export class ProfileImageDto {
+  @ApiSingleFile({ required: false })
+  profileImage: any;
+}
 
 export class ViewProfileResponseDto extends ApiResponseDto {
   @ApiProperty({

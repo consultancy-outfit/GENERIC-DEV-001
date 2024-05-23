@@ -21,7 +21,7 @@ import { createCipheriv } from 'crypto';
 import { VerificationStatusEnum } from '@shared/constants';
 import { HttpService } from '@nestjs/axios';
 import { User } from '@shared/schemas';
-import {firstValueFrom} from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -153,7 +153,7 @@ export class UserService {
   async getUser(dto: GetUserDto) {
     const { userId } = dto;
 
-    const user = await this.userRepository.findOne({_id: userId});
+    const user = await this.userRepository.findOne({ _id: userId });
 
     return user;
   }
@@ -167,64 +167,64 @@ export class UserService {
             _id: userId,
           },
         },
-        {
-          $set: {
-            role: {
-              $ifNull: ['$role', '$defaultRole'],
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: 'roles',
-            localField: 'role',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  permissions: 1,
-                },
-              },
-            ],
-            as: 'rolePermissions',
-          },
-        },
-        {
-          $unwind: {
-            path: '$rolePermissions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'companies',
-            localField: 'companyId',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  menuPermissions: 1,
-                  oneOnOne: 1,
-                },
-              },
-            ],
-            as: 'menuPermissions',
-          },
-        },
-        {
-          $unwind: {
-            path: '$rolePermissions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $unwind: {
-            path: '$menuPermissions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+        // {
+        //   $set: {
+        //     role: {
+        //       $ifNull: ['$role', '$defaultRole'],
+        //     },
+        //   },
+        // },
+        // {
+        //   $lookup: {
+        //     from: 'roles',
+        //     localField: 'role',
+        //     foreignField: '_id',
+        //     pipeline: [
+        //       {
+        //         $project: {
+        //           _id: 0,
+        //           permissions: 1,
+        //         },
+        //       },
+        //     ],
+        //     as: 'rolePermissions',
+        //   },
+        // },
+        // {
+        //   $unwind: {
+        //     path: '$rolePermissions',
+        //     preserveNullAndEmptyArrays: true,
+        //   },
+        // },
+        // {
+        //   $lookup: {
+        //     from: 'companies',
+        //     localField: 'companyId',
+        //     foreignField: '_id',
+        //     pipeline: [
+        //       {
+        //         $project: {
+        //           _id: 0,
+        //           menuPermissions: 1,
+        //           oneOnOne: 1,
+        //         },
+        //       },
+        //     ],
+        //     as: 'menuPermissions',
+        //   },
+        // },
+        // {
+        //   $unwind: {
+        //     path: '$rolePermissions',
+        //     preserveNullAndEmptyArrays: true,
+        //   },
+        // },
+        // {
+        //   $unwind: {
+        //     path: '$menuPermissions',
+        //     preserveNullAndEmptyArrays: true,
+        //   },
+        // },
         {
           $project: {
             _id: 0,
@@ -236,7 +236,7 @@ export class UserService {
             isActive: '$isActive',
             contactNumber: '$contactNumber',
             defaultRole: '$defaultRole',
-            companyId: '$companyId',
+            // companyId: '$companyId',
             department: '$department',
             role: '$role',
             profileImage: '$profileImage',
@@ -245,20 +245,20 @@ export class UserService {
             employeeStatus: '$employeeStatus',
             defaultCompany: '$defaultCompany',
             allowedCompanies: '$allowedCompany',
-            menuPermissions: '$menuPermissions',
+            // menuPermissions: '$menuPermissions',
             allowPushNotifications: 1,
-            userPermissions: {
-              $cond: {
-                if: {
-                  $or: [
-                    { userPermissions: { exists: false } },
-                    { userPermissions: { first: { exists: false } } },
-                  ],
-                },
-                then: '$rolePermissions.permissions',
-                else: '$userPermissions',
-              },
-            },
+            // userPermissions: {
+            //   $cond: {
+            //     if: {
+            //       $or: [
+            //         { userPermissions: { exists: false } },
+            //         { userPermissions: { first: { exists: false } } },
+            //       ],
+            //     },
+            //     then: '$rolePermissions.permissions',
+            //     else: '$userPermissions',
+            //   },
+            // },
           },
         },
       ]);
@@ -287,17 +287,14 @@ export class UserService {
       }
 
       try {
-        return await this.userRepository.findOne(
-          filterQuery,
-          {
-            _id: 1,
-            email: 1,
-            firstName: 1,
-            lastName: 1,
-            contactNumber: 1,
-          },
-          { notFoundThrowError: false }
-        );
+        const user = await this.userRepository.findOne(filterQuery, {
+          _id: 1,
+          email: 1,
+          firstName: 1,
+          lastName: 1,
+          contactNumber: 1,
+        });
+        return user;
       } catch (err) {
         return false;
       }

@@ -1,15 +1,8 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { createHmac } from 'crypto';
-import {
-  ChangePasswordDto,
-  SigninDto,
-} from '../dto/auth';
+import { ChangePasswordDto, SigninDto } from '../dto/auth';
 import { TokenService } from './token.service';
 import { SetNewPassword, SetPassword } from '../dto/auth/set-new-password.dto';
 import { UserRepository } from '@shared/repository';
@@ -27,23 +20,25 @@ export class AuthService {
     private userRepository: UserRepository
   ) {}
 
-  public async signup() {
+  public async signup({ password }) {
     try {
       const userId = v4();
-      const password = generate({
-        length: 10,
-        uppercase: true,
-        lowercase: true,
-        symbols: true,
-      });
+      const finalPassword =
+        password ??
+        generate({
+          length: 10,
+          uppercase: true,
+          lowercase: true,
+          symbols: true,
+        });
       const hashedPassword = await bcrypt.hash(
-        password,
+        finalPassword,
         +this.config.get('JWT_HASH_SALT')
       );
       return {
         data: {
           userId,
-          password,
+          password: finalPassword,
           hashedPassword,
         },
         message: 'User Added Successfully, Credentials sent to provided email.',

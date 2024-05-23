@@ -2,7 +2,13 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload, EventPattern } from '@nestjs/microservices';
 import { MESSAGE_PATTERNS } from '@shared/constants';
 import { UserService } from '../services/user.service';
-import { DeleteUserDto, GetUserDto, UpdateSessionDto, UpdateUserDto } from '../dto/user';
+import {
+  CreateUserDto,
+  DeleteUserDto,
+  GetUserDto,
+  UpdateSessionDto,
+  UpdateUserDto,
+} from '../dto/user';
 
 const {
   GET_USER,
@@ -18,9 +24,10 @@ const {
   CHECK_USER_EMAIL_OR_PHONE,
   IG_VERIFICATION,
   VERIFICATION_UPDATE,
-  ALL_EMPLOYEES,
+  CREATE_USER_DB,
 } = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.USER;
-const { GET_USER_EMAIL_TO_SET_PASSWORD } = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.AUTH;
+const { GET_USER_EMAIL_TO_SET_PASSWORD } =
+  MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.AUTH;
 @Controller()
 export class UserController {
   private readonly logger = new Logger(UserController.name);
@@ -32,6 +39,11 @@ export class UserController {
       healthCheckPassed: true,
       healthCheck: 'Excellent',
     };
+  }
+
+  @MessagePattern(CREATE_USER_DB)
+  async create(@Payload() payload: CreateUserDto) {
+    return await this.userService.createUser(payload);
   }
 
   @MessagePattern(GET_USER_EMAIL_TO_SET_PASSWORD)

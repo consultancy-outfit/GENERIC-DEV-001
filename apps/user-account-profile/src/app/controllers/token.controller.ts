@@ -4,7 +4,8 @@ import { MESSAGE_PATTERNS } from '@shared/constants';
 import { VerifyTokenDto, RefreshTokenDto } from '../dto/token';
 import { TokenService } from '../services/token.service';
 
-const { VERIFY_TOKEN, REFRESH_TOKEN } = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.TOKEN;
+const { VERIFY_TOKEN, REFRESH_TOKEN } =
+  MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.TOKEN;
 
 @Controller()
 export class TokenController {

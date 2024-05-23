@@ -11,10 +11,6 @@ import {
 } from 'class-validator';
 import { ApiResponseDto } from '@shared/dto';
 import { Gender, Role } from '@shared/constants';
-import { AddressDto } from './address.dto';
-// import { Role } from '@shared/constants';
-import { COMPANIES } from '@shared/constants';
-
 export class AddUserDto {
   @ApiProperty({ example: 'Lily' })
   @IsString()
@@ -35,19 +31,6 @@ export class AddUserDto {
   @IsOptional()
   @IsISO8601()
   dob: string;
-  @IsOptional()
-  @ApiProperty({
-    type: AddressDto,
-    required: false,
-    example: {
-      addressLine: 'Model Town',
-      city: 'Lahore',
-      state: 'Punjab',
-      country: 'Pakistan',
-      zipCode: '54000',
-    },
-  })
-  address?: AddressDto;
 }
 
 export class AdminAddUserDto {
@@ -67,7 +50,7 @@ export class AdminAddUserDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: Role.JOB_ADMIN, enum: Role })
+  @ApiProperty({ example: Role.USER, enum: Role })
   @IsNotEmpty()
   @IsEnum(Role)
   defaultRole: string;
@@ -101,15 +84,6 @@ export class UpdateCompanyUserRequestDto {
   @IsNotEmpty()
   @IsString()
   companyName: string;
-
-  @IsArray()
-  @IsEnum(COMPANIES, { each: true })
-  @ApiProperty({
-    enum: COMPANIES,
-    default: [COMPANIES.PERFORMANCE],
-    isArray: true,
-  })
-  allowedCompany: COMPANIES[];
 
   @ApiProperty({ example: true, enum: [true, false] })
   @IsNotEmpty()

@@ -84,11 +84,4 @@ export const MESSAGE_PATTERNS = {
     UNREAD_NOTIFICATIONS: 'unread_notification',
     UNREAD_ALL_NOTIFICATIONS: 'unread_all_notification',
   },
-  BACKUP: {
-    ALL_BACKUPS: 'get_all_backups',
-    GET_BACKUP: 'get_backup',
-    DELETE_BACKUP: 'delete_backup',
-    NEW_BACKUP: 'new_backups',
-    GET_BACKUP_FILE: 'get_backup_file',
-  },
 };

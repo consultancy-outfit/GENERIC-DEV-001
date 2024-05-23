@@ -4,14 +4,12 @@ import { AuthNGuard, AuthZGuard } from './app/guards';
 import { ExceptionsFilter } from './app/filters';
 import { LoggerMiddleware, RouterMiddleware } from './app/middleware';
 import { ConfigService } from '@nestjs/config';
-import { OnboardingModule } from './app/modules/onboarding/onboarding.module';
-import { RecruitmentModule } from './app/modules/recruitment/recruitment.module';
-import { PerformanceModule } from './app/modules/performance/performance.module';
 import { AuditLogsInterceptor } from './app/interceptors/audit-logs.interceptor';
 import { ResponseInterceptor } from './app/interceptors';
+import { CommonModule } from './app/modules/common/common.module';
 
 @Module({
-  imports: [OnboardingModule, RecruitmentModule, PerformanceModule],
+  imports: [CommonModule],
   controllers: [].sort(),
   providers: [
     { provide: APP_GUARD, useClass: AuthNGuard },
