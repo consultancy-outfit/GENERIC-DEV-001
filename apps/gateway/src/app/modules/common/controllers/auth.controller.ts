@@ -17,6 +17,7 @@ import { ClientRMQ } from '@nestjs/microservices';
 import {
   MESSAGE_PATTERNS,
   NOTIFICATION_PATTERNS,
+  Role,
   SERVICES,
   VerificationStatusEnum,
 } from '@shared/constants';
@@ -51,7 +52,7 @@ import {
 
 import { CompanyApprovalRequestDto } from '../dto/auth/company-approval.dto';
 import { UpdateIdentitySessionDto } from '../dto/auth/update-ig-session.dto';
-
+import { AACApiDto } from '@shared/dto';
 const {
   AUTH: {
     SIGNUP,
@@ -84,6 +85,7 @@ const {
     IG_VERIFICATION,
     VERIFICATION_UPDATE,
     UPDATE_USER,
+    SEND_AAC_LEAD,
   },
 } = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE;
 
@@ -103,6 +105,20 @@ export class AuthController {
     type: SignupResponseDto,
   })
   async companySignup(@Body() dto: SignupRequestDto) {
+    const data: AACApiDto = {
+      email: dto.email,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phoneNumber: dto.contactNumber,
+      dateOfBirth: dto.dob,
+      address: dto.address,
+      companyName: dto.companyName,
+    };
+    const a = await firstValueFrom(
+      this.userAuthClient.send(SEND_AAC_LEAD, data)
+    );
+    console.log('aaaaaaaaaaa', a);
+    return;
     const { firstName, lastName, email } = dto;
     const isUniqueEmail = await firstValueFrom(
       this.userAuthClient.send(CHECK_USER_EMAIL_OR_PHONE, {
@@ -126,6 +142,7 @@ export class AuthController {
         _id: signupResponse?.data?.userId,
         password: signupResponse?.data?.hashedPassword,
         temporaryPassword: true,
+        defaultRole: Role.USER,
         ...dto,
       })
     );
@@ -136,6 +153,17 @@ export class AuthController {
       firstName,
       lastName,
     });
+    // const data: AACApiDto = {
+    //   email: dto.email,
+    //   firstName: dto.firstName,
+    //   lastName: dto.lastName,
+    //   phoneNumber: dto.contactNumber,
+    //   dateOfBirth: dto.dob,
+    //   address: dto.address,
+    //   companyName: dto.companyName,
+    // }
+    // this.userAuthClient.emit(SEND_AAC_LEAD, data);
+
     return { userId: signupResponse?.data?.userId };
   }
 

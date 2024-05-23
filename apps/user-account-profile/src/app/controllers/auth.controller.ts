@@ -12,14 +12,6 @@ const { SIGNUP, SIGNIN, CHANGE_PASSWORD, SET_NEW_PASSWORD } =
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @MessagePattern('health-check')
-  async healthCheck() {
-    return {
-      healthCheckPassed: true,
-      healthCheck: 'Excellent',
-    };
-  }
-
   @MessagePattern(SIGNUP)
   async signup(@Payload() payload: any) {
     return await this.authService.signup(payload);

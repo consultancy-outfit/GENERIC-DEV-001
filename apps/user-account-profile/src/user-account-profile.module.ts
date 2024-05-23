@@ -16,6 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuditLog, AuditLogSchema, User, UserSchema } from '@shared/schemas';
 import { UserService } from './app/services/user.service';
 import { UserController } from './app/controllers/user.controller';
+import { AACLeadGenerationService } from './app/services/aac-api.service';
 
 const schemaObject = {
   // RMQ Configuration
@@ -31,6 +32,10 @@ const schemaObject = {
   COGNITO_CLIENT_ID: Joi.string().required(),
   COGNITO_CLIENT_SECRET: Joi.string().required(),
   COGNITO_REGION: Joi.string().required(),
+
+  // AAC Api configuration
+  AAC_API_URL: Joi.string().required(),
+  AAC_API_KEY: Joi.string().required(),
 };
 
 @Module({
@@ -73,6 +78,7 @@ const schemaObject = {
     TokenService,
     AuditLogRepository,
     UserRepository,
+    AACLeadGenerationService,
   ],
 })
 export class UserAccountProfileModule {}

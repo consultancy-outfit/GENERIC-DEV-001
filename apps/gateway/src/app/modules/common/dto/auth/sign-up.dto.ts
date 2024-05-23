@@ -69,10 +69,10 @@ export class SignupRequestDto {
   @IsISO8601()
   dob: string;
 
-  @IsEnum(Role)
-  @IsOptional()
-  @ApiProperty({ example: Role.USER })
-  defaultRole: Role;
+  // @IsEnum(Role)
+  // @IsOptional()
+  // @ApiProperty({ example: Role.USER })
+  // defaultRole: Role;
 }
 
 export class SignupResponseDto extends ApiResponseDto {

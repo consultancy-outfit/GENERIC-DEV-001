@@ -9,6 +9,7 @@ import {
   UpdateSessionDto,
   UpdateUserDto,
 } from '../dto/user';
+import { AACApiDto } from '@shared/dto';
 
 const {
   GET_USER,
@@ -25,6 +26,7 @@ const {
   IG_VERIFICATION,
   VERIFICATION_UPDATE,
   CREATE_USER_DB,
+  SEND_AAC_LEAD,
 } = MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.USER;
 const { GET_USER_EMAIL_TO_SET_PASSWORD } =
   MESSAGE_PATTERNS.USER_ACCOUNT_PROFILE.AUTH;
@@ -125,5 +127,10 @@ export class UserController {
   @MessagePattern(VERIFICATION_UPDATE)
   async updateIGVerification(@Payload() payload: UpdateSessionDto) {
     return await this.userService.updateIdentitySession(payload);
+  }
+
+  @EventPattern(SEND_AAC_LEAD)
+  async sendLeadGeneration(@Payload() payload: AACApiDto) {
+    return await this.userService.sendLeadGeneration(payload);
   }
 }

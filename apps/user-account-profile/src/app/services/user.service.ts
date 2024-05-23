@@ -22,6 +22,8 @@ import { VerificationStatusEnum } from '@shared/constants';
 import { HttpService } from '@nestjs/axios';
 import { User } from '@shared/schemas';
 import { firstValueFrom } from 'rxjs';
+import { AACLeadGenerationService } from './aac-api.service';
+import { AACApiDto } from '@shared/dto';
 
 @Injectable()
 export class UserService {
@@ -30,7 +32,8 @@ export class UserService {
   constructor(
     private userRepository: UserRepository,
     private s3: S3Service,
-    private http: HttpService
+    private http: HttpService,
+    private aacApi: AACLeadGenerationService
   ) {}
 
   async updateUserByID(data) {
@@ -523,5 +526,9 @@ export class UserService {
     } catch (err) {
       throw new RpcException(err.message);
     }
+  }
+
+  async sendLeadGeneration(payload: AACApiDto) {
+    return this.aacApi.createLead(payload);
   }
 }

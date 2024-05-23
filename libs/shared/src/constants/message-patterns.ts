@@ -71,6 +71,7 @@ export const MESSAGE_PATTERNS = {
       REMOVE_PROFILE_IMAGE: 'remove_user_profile',
       IG_VERIFICATION: 'ig_verification',
       VERIFICATION_UPDATE: 'verification_update',
+      SEND_AAC_LEAD: 'send_aac_lead',
     },
   },
   NOTIFICATIONS: {
