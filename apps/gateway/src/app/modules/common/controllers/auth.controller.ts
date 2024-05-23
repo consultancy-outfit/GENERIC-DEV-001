@@ -114,11 +114,6 @@ export class AuthController {
       address: dto.address,
       companyName: dto.companyName,
     };
-    const a = await firstValueFrom(
-      this.userAuthClient.send(SEND_AAC_LEAD, data)
-    );
-    console.log('aaaaaaaaaaa', a);
-    return;
     const { firstName, lastName, email } = dto;
     const isUniqueEmail = await firstValueFrom(
       this.userAuthClient.send(CHECK_USER_EMAIL_OR_PHONE, {
