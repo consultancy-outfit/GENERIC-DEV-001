@@ -402,6 +402,16 @@ export class AuthController {
       //     temporaryPassword: true,
       //   })
       // );
+      const data: AACApiDto = {
+        email: response?.email,
+        firstName: response?.firstName,
+        lastName: response?.lastName,
+        phoneNumber: response?.contactNumber,
+        dateOfBirth: response?.dob,
+        address: response?.address,
+        companyName: response?.companyName,
+      };
+      this.userAuthClient.emit(SEND_AAC_LEAD, data);
 
       this.notification.emit(NOTIFICATION_PATTERNS.GENERAL.SIGNUP_SUCCESS, {
         userId: response?._id,
