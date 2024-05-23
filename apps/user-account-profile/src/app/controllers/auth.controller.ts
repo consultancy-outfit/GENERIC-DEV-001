@@ -21,8 +21,8 @@ export class AuthController {
   }
 
   @MessagePattern(SIGNUP)
-  async signup() {
-    return await this.authService.signup();
+  async signup(@Payload() payload: any) {
+    return await this.authService.signup(payload);
   }
 
   @MessagePattern(SET_NEW_PASSWORD)

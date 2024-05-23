@@ -114,11 +114,10 @@ export class AuthController {
     if (isUniqueEmail) {
       throw new ConflictException('Email is already registered.');
     }
-    console.log(dto);
 
     const signupResponse = await firstValueFrom(
       this.userAuthClient.send(SIGNUP, {
-        ...dto,
+        password: dto.password,
       })
     );
 
@@ -367,26 +366,26 @@ export class AuthController {
       this.userAuthClient.send(VERIFICATION_UPDATE, { ...dto })
     );
     if (dto.status === VerificationStatusEnum.APPROVED) {
-      const signupResponse = await firstValueFrom(
-        this.userAuthClient.send(SIGNUP, {
-          ...dto,
-        })
-      );
+      // const signupResponse = await firstValueFrom(
+      //   this.userAuthClient.send(SIGNUP, {
+      //     ...dto,
+      //   })
+      // );
 
-      await firstValueFrom(
-        this.userAuthClient.send(UPDATE_USER, {
-          userId: response?._id,
-          password: signupResponse?.data?.hashedPassword,
-          temporaryPassword: true,
-        })
-      );
+      // await firstValueFrom(
+      //   this.userAuthClient.send(UPDATE_USER, {
+      //     userId: response?._id,
+      //     password: signupResponse?.data?.hashedPassword,
+      //     temporaryPassword: true,
+      //   })
+      // );
 
       this.notification.emit(NOTIFICATION_PATTERNS.GENERAL.SIGNUP_SUCCESS, {
         userId: response?._id,
         firstName: response?.firstName,
         lastName: response?.lastName,
         email: response?.email,
-        password: signupResponse?.data?.password,
+        // password: signupResponse?.data?.password,
       });
     }
     return response;

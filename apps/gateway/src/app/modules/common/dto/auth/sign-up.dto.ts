@@ -6,6 +6,7 @@ import {
   IsString,
   IsOptional,
   IsEnum,
+  IsISO8601,
 } from 'class-validator';
 import { ApiResponseDto } from '@shared/dto';
 import { Role } from '@shared/constants';
@@ -34,6 +35,11 @@ export class SignupRequestDto {
   @ApiProperty({ example: 'super_admin@yopmail.com' })
   email: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'Doe' })
+  password: string;
+
   @IsPhoneNumber(null, {
     message({ property }) {
       return `${property} is not valid .`;
@@ -42,6 +48,26 @@ export class SignupRequestDto {
   @IsOptional()
   @ApiProperty({ example: '+442071234567' })
   contactNumber: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: 'Orcalo' })
+  companyName: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: '12243' })
+  crn: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: '12243' })
+  address: string;
+
+  @ApiProperty({ example: '2023-10-15', required: false })
+  @IsOptional()
+  @IsISO8601()
+  dob: string;
 
   @IsEnum(Role)
   @IsOptional()
