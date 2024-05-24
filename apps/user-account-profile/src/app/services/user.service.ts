@@ -155,9 +155,7 @@ export class UserService {
 
   async getUser(dto: GetUserDto) {
     const { userId } = dto;
-
     const user = await this.userRepository.findOne({ _id: userId });
-
     return user;
   }
 

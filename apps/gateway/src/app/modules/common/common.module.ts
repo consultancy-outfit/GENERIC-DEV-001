@@ -52,9 +52,9 @@ const schemaObject = {
   controllers: [
     AuthController,
     UtilsController,
-    UserProfileController,
-    SuperAdminController,
-    NotificationController,
+    // UserProfileController,
+    // SuperAdminController,
+    // NotificationController,
   ],
   providers: [...SERVICE_PROVIDERS, ALL_SERVICE_PROVIDERS, EventsGateway],
   exports: [...SERVICE_PROVIDERS, EventsGateway],
