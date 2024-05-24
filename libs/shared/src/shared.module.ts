@@ -14,12 +14,6 @@ const schemaObject = {
   // Mongo DB Configuration
   MONGO_DSN: Joi.string().required(),
   MONGO_DATABASE: Joi.string().required(),
-
-  // S3 Configuration
-  S3_REGION: Joi.string().required(),
-  S3_BUCKET: Joi.string().required(),
-  S3_AWS_ACCESS_KEY: Joi.string().required(),
-  S3_AWS_SECRET_KEY: Joi.string().required(),
 };
 @Module({
   imports: [

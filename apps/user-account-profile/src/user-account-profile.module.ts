@@ -27,12 +27,6 @@ const schemaObject = {
   MONGO_DSN: Joi.string().required(),
   MONGO_DATABASE: Joi.string().required(),
 
-  // Cognito Configuration
-  COGNITO_USER_POOL_ID: Joi.string().required(),
-  COGNITO_CLIENT_ID: Joi.string().required(),
-  COGNITO_CLIENT_SECRET: Joi.string().required(),
-  COGNITO_REGION: Joi.string().required(),
-
   // AAC Api configuration
   AAC_API_URL: Joi.string().required(),
   AAC_API_KEY: Joi.string().required(),
